@@ -25,7 +25,8 @@ public class RowMapperFactory {
                             ),
                             Position.valueOf(resultSet.getString("POSITION")),
                             LocalDate.parse(resultSet.getString("HIREDATE")),
-                            new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY")))
+                            new BigDecimal(resultSet.getString("SALARY"))
+                            //new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY")))
                     );
                 } catch (SQLException e) {
                     e.printStackTrace();
