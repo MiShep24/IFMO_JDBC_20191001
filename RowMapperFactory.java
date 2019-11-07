@@ -26,10 +26,9 @@ public class RowMapperFactory {
                         new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY")))
                 );
             } catch (SQLException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 return null;
             }
         };
-        return rowMap;
     }
 }
