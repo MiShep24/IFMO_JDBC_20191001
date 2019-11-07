@@ -15,7 +15,7 @@ public class RowMapperFactory {
         RowMapper<Employee> rowMap = resultSet -> {
             try {
                 return new Employee(
-                        new BigInteger(String.valueOf(resultSet.getInt("ID"))),
+                        new BigInteger(resultSet.getString("ID")),
                         new FullName(
                                 resultSet.getString("FIRSTNAME"),
                                 resultSet.getString("MIDDLENAME"),
@@ -23,12 +23,14 @@ public class RowMapperFactory {
                         ),
                         Position.valueOf(resultSet.getString("POSITION")),
                         LocalDate.parse(resultSet.getString("HIREDATE")),
-                        new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY")))
+                        new BigDecimal(resultSet.getString("SALARY"))
+                        //new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY")))
                 );
             } catch (SQLException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
                 return null;
             }
         };
+        return rowMap;
     }
 }
