@@ -12,25 +12,26 @@ import java.time.LocalDate;
 public class RowMapperFactory {
 
     public RowMapper<Employee> employeeRowMapper() {
-        RowMapper<Employee> rowMap = resultSet -> {
-            try {
-                return new Employee(
-                        new BigInteger(resultSet.getString("ID")),
-                        new FullName(
-                                resultSet.getString("FIRSTNAME"),
-                                resultSet.getString("MIDDLENAME"),
-                                resultSet.getString("LASTNAME")
-                        ),
-                        Position.valueOf(resultSet.getString("POSITION")),
-                        LocalDate.parse(resultSet.getString("HIREDATE")),
-                        new BigDecimal(resultSet.getString("SALARY"))
-                        //new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY")))
-                );
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return null;
+        RowMapper<Employee> rowMap = new RowMapper<Employee>() {
+            @Override
+            public Employee rowMap(ResultSet resultSet) {
+                try {
+                    return new Employee(
+                            new BigInteger(resultSet.getString("ID")),
+                            new FullName(
+                                    resultSet.getString("FIRSTNAME"),
+                                    resultSet.getString("MIDDLENAME"),
+                                    resultSet.getString("LASTNAME")
+                            ),
+                            Position.valueOf(resultSet.getString("POSITION")),
+                            LocalDate.parse(resultSet.getString("HIREDATE")),
+                            new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY")))
+                    );
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
         };
-        return rowMap;
     }
 }
