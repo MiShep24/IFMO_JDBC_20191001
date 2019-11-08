@@ -10,29 +10,25 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class RowMapperFactory {
-
     public RowMapper<Employee> employeeRowMapper() {
-        RowMapper<Employee> rowMap = new RowMapper<Employee>() {
-            @Override
-            public Employee rowMap(ResultSet resultSet) {
+        return resultSet -> {
                 try {
-                        BigInteger ID = new BigInteger(String.valueOf(resultSet.getInt("ID"));
+                        BigInteger ID = new BigInteger(String.valueOf(resultSet.getInt("Id"));
                         FullName fName = new FullName(
-                                    resultSet.getString("FIRSTNAME"),
-                                    resultSet.getString("MIDDLENAME"),
-                                    resultSet.getString("LASTNAME")
+                                    resultSet.getString("Firstname"),
+                                    resultSet.getString("Middlename"),
+                                    resultSet.getString("Lastname")
                             );
-                        Position pos = Position.valueOf(resultSet.getString("POSITION"));
-                        LocalDate lDate = LocalDate.parse(resultSet.getString("HIREDATE"));
-                        BigDecimal salary = new BigDecimal(resultSet.getBigDecimal("SALARY"));
-                        return Employee(ID, fName, pos, lDate, salary);
+                        Position pos = Position.valueOf(resultSet.getString("Position"));
+                        LocalDate lDate = LocalDate.parse(resultSet.getString("Hiredate"));
+                        BigDecimal salary = new BigDecimal(resultSet.getBigDecimal("Salary"));
+                        Employee emp = new Employee(ID, fName, pos, lDate, salary);
+                        return emp;
                     );
                 } catch (SQLException e) {
                     e.printStackTrace();
                     return null;
                 }
-            }
-        };
-        return rowMap;
-    }
+        }
+    };
 }
