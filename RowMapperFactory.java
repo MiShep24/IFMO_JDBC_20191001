@@ -10,8 +10,8 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class RowMapperFactory {
-    public RowMapper<Employee> employeeRowMapper() {
-        return resultSet -> {
+    RowMapper<Employee> employeeRowMapper() {
+        RowMapper<Employee> rowMap = resultSet ->  {
             try {
                 return new Employee(
                         new BigInteger(String.valueOf(resultSet.getInt("ID"))),
@@ -29,5 +29,6 @@ public class RowMapperFactory {
                 return null;
             }
         };
+        return rowMap;
     }
 }
