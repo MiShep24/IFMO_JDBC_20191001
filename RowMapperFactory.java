@@ -12,23 +12,22 @@ import java.time.LocalDate;
 public class RowMapperFactory {
     public RowMapper<Employee> employeeRowMapper() {
         return resultSet -> {
-                try {
-                        BigInteger ID = new BigInteger(String.valueOf(resultSet.getInt("Id"));
-                        FullName fName = new FullName(
-                                    resultSet.getString("Firstname"),
-                                    resultSet.getString("Middlename"),
-                                    resultSet.getString("Lastname")
-                            );
-                        Position pos = Position.valueOf(resultSet.getString("Position"));
-                        LocalDate lDate = LocalDate.parse(resultSet.getString("Hiredate"));
-                        BigDecimal salary = new BigDecimal(resultSet.getBigDecimal("Salary"));
-                        Employee emp = new Employee(ID, fName, pos, lDate, salary);
-                        return emp;
-                    );
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-        }
-    };
+            try {
+                return new Employee(
+                        new BigInteger(String.valueOf(resultSet.getInt("ID"))),
+                        new FullName(
+                                resultSet.getString("FIRSTNAME"),
+                                resultSet.getString("LASTNAME"),
+                                resultSet.getString("MIDDLENAME")
+                        ),
+                        Position.valueOf(resultSet.getString("POSITION")),
+                        LocalDate.parse(resultSet.getString("HIREDATE")),
+                        new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY")))
+                );
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return null;
+            }
+        };
+    }
 }
