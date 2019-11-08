@@ -16,17 +16,16 @@ public class RowMapperFactory {
             @Override
             public Employee rowMap(ResultSet resultSet) {
                 try {
-                    return new Employee(
-                            new BigInteger(resultSet.getString("ID")),
-                            new FullName(
+                        BigInteger ID = new BigInteger(String.valueOf(resultSet.getInt("ID"));
+                        FullName fName = new FullName(
                                     resultSet.getString("FIRSTNAME"),
                                     resultSet.getString("MIDDLENAME"),
                                     resultSet.getString("LASTNAME")
-                            ),
-                            Position.valueOf(resultSet.getString("POSITION")),
-                            LocalDate.parse(resultSet.getString("HIREDATE")),
-                            new BigDecimal(resultSet.getString("SALARY"))
-                            //new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY")))
+                            );
+                        Position pos = Position.valueOf(resultSet.getString("POSITION"));
+                        LocalDate lDate = LocalDate.parse(resultSet.getString("HIREDATE"));
+                        BigDecimal salary = new BigDecimal(resultSet.getBigDecimal("SALARY"));
+                        return Employee(ID, fName, pos, lDate, salary);
                     );
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -34,5 +33,6 @@ public class RowMapperFactory {
                 }
             }
         };
+        return rowMap;
     }
 }
