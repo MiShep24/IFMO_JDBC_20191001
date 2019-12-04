@@ -8,215 +8,197 @@ import com.efimchick.ifmo.web.jdbc.domain.Position;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
 public class DaoFactory {
-
-    private ResultSet getResultSet (String sql) {
-        try {
-            Connection connection = ConnectionSource.instance().createConnection();
-            Statement statement = connection.createStatement();
-            return statement.executeQuery(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private Employee getEmployee(ResultSet resultSet) {
-        try {
-            return new Employee(
-                    new BigInteger(String.valueOf(resultSet.getInt("ID"))),
-                    new FullName(
-                            resultSet.getString("FIRSTNAME"),
-                            resultSet.getString("LASTNAME"),
-                            resultSet.getString("MIDDLENAME")
-                    ),
-                    Position.valueOf(resultSet.getString("POSITION")),
-                    LocalDate.parse(resultSet.getString("HIREDATE")),
-                    new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY"))),
-                    new BigInteger(String.valueOf(resultSet.getInt("MANAGER"))),
-                    new BigInteger(String.valueOf(resultSet.getInt("DEPARTMENT")))
-            );
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-
-    private List<Employee> getEmployeeList() {
-        try {
-            List<Employee> employeeList = new LinkedList<>();
-            ResultSet resultSet = getResultSet("SELECT * FROM EMPLOYEE");
-            while (resultSet.next()){
-                employeeList.add(getEmployee(resultSet));
-            }
-            return employeeList;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private List<Employee> employees = getEmployeeList();
-
-    private Department getDepartment(ResultSet resultSet) {
-        try {
-            return new Department(
-                    new BigInteger(resultSet.getString("ID")),
-                    resultSet.getString("NAME"),
-                    resultSet.getString("LOCATION")
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private List<Department> getDepartmentList() {
-        try {
-            List<Department> departmentList = new LinkedList<>();
-            ResultSet resultSet = getResultSet("SELECT * FROM DEPARTMENT");
-            while (resultSet.next()) {
-                departmentList.add(getDepartment(resultSet));
-            }
-            return departmentList;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private List<Department> departments = getDepartmentList();
-
     public EmployeeDao employeeDAO() {
-        //throw new UnsupportedOperationException();
         return new EmployeeDao() {
-
-            @Override
-            public Optional<Employee> getById(BigInteger Id) {
+            private Employee getEmployee(ResultSet resultSet) {
                 try {
-                    Optional<Employee> employee = Optional.empty();
-                    for (Employee emp : employees) {
-                        if (emp.getId().equals(Id)) {
-                            employee = Optional.of(emp);
-                            break;
-                        }
-                    }
-                    return employee;
-
-                } catch (Exception e) {
+                    return new Employee(
+                            new BigInteger(String.valueOf(resultSet.getInt("ID"))),
+                            new FullName(
+                                    resultSet.getString("FIRSTNAME"),
+                                    resultSet.getString("LASTNAME"),
+                                    resultSet.getString("MIDDLENAME")
+                            ),
+                            Position.valueOf(resultSet.getString("POSITION")),
+                            LocalDate.parse(resultSet.getString("HIREDATE")),
+                            new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY"))),
+                            new BigInteger(String.valueOf(resultSet.getInt("MANAGER"))),
+                            new BigInteger(String.valueOf(resultSet.getInt("DEPARTMENT")))
+                    );
+                } catch (SQLException e) {
                     e.printStackTrace();
-                    return Optional.empty();
-                }
-            }
-
-            @Override
-            public List<Employee> getAll() {
-                return employees;
-            }
-
-            @Override
-            public Employee save(Employee employee) {
-                try {
-                    for (int i = 0; i < employees.size(); i++){
-                        if(employees.get(i).getId().equals(employee.getId())){
-                            employees.remove(i);
-                        }
-                    }
-                    employees.add(employee);
-                    return employee;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public void delete(Employee employee) {
-                employees.remove(employee);
-            }
-
-            @Override
-            public List<Employee> getByDepartment(Department department) {
-                try {
-                    List<Employee> resultList = new LinkedList<>();
-                    for (Employee emp : employees) {
-                        if(emp.getDepartmentId().equals(department.getId())){
-                            resultList.add(emp);
-                        }
-                    }
-                    return resultList;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
+                    return new Employee(null, null, null, null, null, null, null);
                 }
             }
 
             @Override
             public List<Employee> getByManager(Employee employee) {
                 try {
-                    List<Employee> resultList = new LinkedList<>();
-                    for (Employee value : employees) {
-                        if(value.getManagerId().equals(employee.getId())){
-                            resultList.add(value);
-                        }
+                    ResultSet resultSet = (ConnectionSource.instance().createConnection().createStatement()).executeQuery(
+                    "select * from EMPLOYEE where MANAGER = " + employee.getId()
+                    );
+                    List<Employee> employees = new LinkedList<>();
+                    while (resultSet.next()) {
+                        employees.add(getEmployee(resultSet));
                     }
-                    return resultList;
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    return employees;
+                } catch (SQLException exception) {
                     return null;
                 }
             }
-        };
-    }
 
-    public DepartmentDao departmentDAO() {
-        //throw new UnsupportedOperationException();
-        return new DepartmentDao() {
             @Override
-            public Optional<Department> getById(BigInteger Id) {
+            public List<Employee> getByDepartment(Department department){
                 try {
-                    Optional<Department> resultList = Optional.empty();
-                    for (Department department : departments) {
-                        if(department.getId().equals(Id)) {
-                            resultList = Optional.of(department);
-                        }
+                    ResultSet resultSet = (ConnectionSource.instance().createConnection().createStatement()).executeQuery(
+                            "select * from EMPLOYEE where DEPARTMENT = " + department.getId()
+                    );
+                    List<Employee> employees = new LinkedList<>();
+                    while (resultSet.next()) {
+                        employees.add(getEmployee(resultSet));
                     }
-                    return resultList;
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    return employees;
+                } catch (SQLException exception) {
+                    return null;
+                }
+            }
+
+            @Override
+            public Optional<Employee> getById(BigInteger Id) {
+                try {
+                    ResultSet resultSet = (ConnectionSource.instance().createConnection().createStatement()).executeQuery(
+                    "select * from EMPLOYEE where ID = " + Id
+                    );
+                    if (resultSet.next()) {
+                        return Optional.of(getEmployee(resultSet));
+                    }
+                    return Optional.empty();
+                } catch (SQLException exception){
                     return Optional.empty();
                 }
             }
 
             @Override
-            public List<Department> getAll() {
-                return departments;
-            }
-
-            @Override
-            public Department save(Department department) {
-                for (int i = 0; i < departments.size(); i++){
-                    if(departments.get(i).getId().equals(department.getId())) {
-                        departments.remove(i);
+            public List<Employee> getAll(){
+                try {
+                    ResultSet resultSet = (ConnectionSource.instance().createConnection().createStatement()).executeQuery(
+                    "select * from EMPLOYEE"
+                    );
+                    List<Employee> employees = new LinkedList<>();
+                    while (resultSet.next()) {
+                        employees.add(getEmployee(resultSet));
                     }
+                    return employees;
+                } catch (SQLException exception){
+                    return null;
                 }
-                departments.add(department);
-                return department;
             }
 
             @Override
-            public void delete(Department department) {
-                departments.remove(department);
+            public Employee save(Employee employee){
+                try {
+                    (ConnectionSource.instance().createConnection().createStatement()).execute(
+                    "insert into EMPLOYEE values ('" + employee.getId() + "', '" + employee.getFullName().getFirstName()  + "', '" +
+                        employee.getFullName().getLastName()   + "', '" + employee.getFullName().getMiddleName() + "', '" +
+                        employee.getPosition() + "', '" + employee.getManagerId() + "', '" + Date.valueOf(employee.getHired()) + "', '" +
+                        employee.getSalary() + "', '" + employee.getDepartmentId() + "')"
+                    );
+                    return employee;
+                } catch (SQLException exception){
+                    return null;
+                }
+            }
+
+            @Override
+            public void delete(Employee employee){
+                try {
+                    (ConnectionSource.instance().createConnection().createStatement()).execute(
+                    "delete from EMPLOYEE where ID = " + employee.getId()
+                    );
+                } catch (SQLException ignored){}
+            }
+        };
+    }
+
+    public DepartmentDao departmentDAO() {
+        return new DepartmentDao() {
+            private Department getDepartment(ResultSet resultSet) {
+                try {
+                    return new Department(
+                            new BigInteger(resultSet.getString("ID")),
+                            resultSet.getString("NAME"),
+                            resultSet.getString("LOCATION")
+                    );
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    return new Department(null, null, null);
+                }
+            }
+
+            @Override
+            public Optional<Department> getById(BigInteger Id){
+                try {
+                    ResultSet resultSet = (ConnectionSource.instance().createConnection().createStatement()).executeQuery(
+                    "select * from DEPARTMENT where ID = " + Id
+                    );
+                    if (resultSet.next()) {
+                        return Optional.of(getDepartment(resultSet));
+                    } else {
+                        return Optional.empty();
+                    }
+                } catch (SQLException exception){
+                    return Optional.empty();
+                }
+            }
+
+            @Override
+            public List<Department> getAll(){
+                try {
+                    ResultSet resultSet = (ConnectionSource.instance().createConnection().createStatement()).executeQuery(
+                    "select * from DEPARTMENT"
+                    );
+                    List<Department> departments = new LinkedList<>();
+                    while (resultSet.next()) {
+                        departments.add(getDepartment(resultSet));
+                    }
+                    return departments;
+                } catch (SQLException exception){
+                    return null;
+                }
+            }
+
+            @Override
+            public Department save(Department department){
+                try {
+                    if (getById(department.getId()).equals(Optional.empty())) {
+                        (ConnectionSource.instance().createConnection().createStatement()).execute(
+                        "insert into DEPARTMENT values ('" + department.getId() + "', '" + department.getName() + "', '" + department.getLocation() + "')"
+                        );
+                    } else {
+                        (ConnectionSource.instance().createConnection().createStatement()).execute(
+                        "update DEPARTMENT set " + "NAME = '" + department.getName() + "', " + "LOCATION = '" + department.getLocation() + "' " + "where ID = '" + department.getId() + "'"
+                        );
+                    }
+                    return department;
+                } catch (SQLException exception){
+                    return null;
+                }
+            }
+
+            @Override
+            public void delete(Department department){
+                try{
+                    (ConnectionSource.instance().createConnection().createStatement()).execute(
+                    "delete from DEPARTMENT where ID = " + department.getId()
+                    );
+                } catch (SQLException ignored){}
             }
         };
     }
