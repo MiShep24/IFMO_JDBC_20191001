@@ -15,7 +15,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ServiceFactory {
-    public EmployeeService employeeService() {
+
+    public EmployeeService employeeService(){
+        //throw new UnsupportedOperationException();
         return new EmployeeService() {
             private Employee getEmployee(ResultSet resultSet, boolean chain, boolean firstManager){
                 try {
@@ -95,12 +97,7 @@ public class ServiceFactory {
 
             @Override
             public List<Employee> getAllSortByLastname(Paging paging) {
-                try {
-                    return employeeList(paging, "select * from EMPLOYEE order by LASTNAME");
-                } catch (Exception e){
-                    e.printStackTrace();
-                    return null;
-                }
+                return employeeList(paging, "select * from EMPLOYEE order by LASTNAME");
             }
 
             @Override
