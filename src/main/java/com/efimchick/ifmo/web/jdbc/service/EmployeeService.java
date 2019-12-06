@@ -9,19 +9,19 @@ public interface EmployeeService {
 
     List<Employee> getAllSortByHireDate(Paging paging);
 
-    List<Employee> getAllSortByLastname(Paging paging);
+    List<Employee> getAllSortByLastName(Paging paging);
 
     List<Employee> getAllSortBySalary(Paging paging);
 
-    List<Employee> getAllSortByDepartmentNameAndLastname(Paging paging);
+    List<Employee> getAllSortByDepartmentNameAndLastName(Paging paging);
 
     List<Employee> getByDepartmentSortByHireDate(Department department, Paging paging);
 
     List<Employee> getByDepartmentSortBySalary(Department department, Paging paging);
 
-    List<Employee> getByDepartmentSortByLastname(Department department, Paging paging);
+    List<Employee> getByDepartmentSortByLastName(Department department, Paging paging);
 
-    List<Employee> getByManagerSortByLastname(Employee manager, Paging paging);
+    List<Employee> getByManagerSortByLastName(Employee manager, Paging paging);
 
     List<Employee> getByManagerSortByHireDate(Employee manager, Paging paging);
 
