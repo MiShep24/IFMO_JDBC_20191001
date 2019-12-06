@@ -95,11 +95,6 @@ public class ServiceFactory {
 
             @Override
             public List<Employee> getAllSortByLastname(Paging paging) {
-                return null;
-            }
-
-            @Override
-            public List<Employee> getAllSortByLastName(Paging paging) {
                 try {
                     return employeeList(paging, "select * from EMPLOYEE order by LASTNAME");
                 } catch (Exception e){
@@ -115,11 +110,6 @@ public class ServiceFactory {
 
             @Override
             public List<Employee> getAllSortByDepartmentNameAndLastname(Paging paging) {
-                return null;
-            }
-
-            @Override
-            public List<Employee> getAllSortByDepartmentNameAndLastName(Paging paging) {
                 return employeeList(paging, "select * from EMPLOYEE order by DEPARTMENT, LASTNAME");
             }
 
@@ -135,21 +125,11 @@ public class ServiceFactory {
 
             @Override
             public List<Employee> getByDepartmentSortByLastname(Department department, Paging paging) {
-                return null;
-            }
-
-            @Override
-            public List<Employee> getByManagerSortByLastname(Employee manager, Paging paging) {
-                return null;
-            }
-
-            @Override
-            public List<Employee> getByDepartmentSortByLastName(Department department, Paging paging) {
                 return employeeList(paging, "select * from EMPLOYEE where DEPARTMENT = " + department.getId() + " order by LASTNAME");
             }
 
             @Override
-            public List<Employee> getByManagerSortByLastName(Employee manager, Paging paging) {
+            public List<Employee> getByManagerSortByLastname(Employee manager, Paging paging) {
                 return employeeList(paging, "select * from EMPLOYEE where MANAGER = " + manager.getId() + " order by LASTNAME");
             }
 
