@@ -15,81 +15,80 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ServiceFactory {
+    private Employee getEmployee(ResultSet resultSet, boolean chain, boolean firstManager) {
+        try {
+            Employee manager = null;
+            BigInteger managerID = BigInteger.valueOf(resultSet.getInt("MANAGER"));
+            if (managerID != null && firstManager) {
+                if (!chain) {
+                    firstManager = false;
+                }
+                ResultSet newResultSet = ConnectionSource.instance().createConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT * FROM EMPLOYEE");
+                while (newResultSet.next()) {
+                    if (BigInteger.valueOf(newResultSet.getInt("ID")).equals(managerID)) {
+                        manager = getEmployee(newResultSet, chain, firstManager);
+                    }
+                }
+            }
+            return new Employee(
+                    new BigInteger(String.valueOf(resultSet.getInt("ID"))),
+                    new FullName(
+                            resultSet.getString("FIRSTNAME"),
+                            resultSet.getString("LASTNAME"),
+                            resultSet.getString("MIDDLENAME")
+                    ),
+                    Position.valueOf(resultSet.getString("POSITION")),
+                    LocalDate.parse(resultSet.getString("HIREDATE")),
+                    new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY"))),
+                    manager,
+                    getDepartment(resultSet.getString("DEPARTMENT")));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new Employee(null, null, null, null, null, null, null);
+        }
+    }
 
-    public EmployeeService employeeService(){
-        //throw new UnsupportedOperationException();
+    private Department getDepartment(String ID) {
+        try {
+            ResultSet resultSet = ConnectionSource.instance().createConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT * FROM DEPARTMENT");
+            if (ID == null) {
+                return null;
+            }
+            while (resultSet.next()) {
+                if (ID.equals(resultSet.getString("ID"))) {
+                    return new Department(
+                            new BigInteger(resultSet.getString("ID")),
+                            resultSet.getString("NAME"),
+                            resultSet.getString("LOCATION")
+                    );
+                }
+            }
+            return null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new Department(null, null, null);
+        }
+    }
+
+    private List<Employee> employeeList(Paging paging, String SQLString) {
+        try {
+            ResultSet resultSet = ConnectionSource.instance().createConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(SQLString);
+            List<Employee> result = new LinkedList<>();
+            int item = (paging.page - 1) * paging.itemPerPage;
+            resultSet.absolute(item);
+            while (resultSet.next() && item < (paging.page) * paging.itemPerPage) {
+                result.add(getEmployee(resultSet, false, true));
+                item++;
+            }
+            return result;
+        } catch (SQLException exception) {
+            return null;
+        }
+    }
+
+
+    public EmployeeService employeeService() {
         return new EmployeeService() {
-            private Employee getEmployee(ResultSet resultSet, boolean chain, boolean firstManager){
-                try {
-                    Employee manager = null;
-                    BigInteger managerID = BigInteger.valueOf(resultSet.getInt("MANAGER"));
-                    if(managerID != null && firstManager) {
-                        if (!chain) {
-                            firstManager = false;
-                        }
-                        ResultSet newResultSet = ConnectionSource.instance().createConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT * FROM EMPLOYEE");
-                        while (newResultSet.next()) {
-                            if(BigInteger.valueOf(newResultSet.getInt("ID")).equals(managerID)) {
-                                manager = getEmployee(newResultSet, chain, firstManager);
-                            }
-                        }
-                    }
-                    return new Employee(
-                            new BigInteger(String.valueOf(resultSet.getInt("ID"))),
-                            new FullName(
-                                    resultSet.getString("FIRSTNAME"),
-                                    resultSet.getString("LASTNAME"),
-                                    resultSet.getString("MIDDLENAME")
-                            ),
-                            Position.valueOf(resultSet.getString("POSITION")),
-                            LocalDate.parse(resultSet.getString("HIREDATE")),
-                            new BigDecimal(String.valueOf(resultSet.getBigDecimal("SALARY"))),
-                            manager,
-                            getDepartment(resultSet.getString("DEPARTMENT")));
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    return new Employee(null, null, null, null, null, null, null);
-                }
-            }
-
-            private Department getDepartment(String ID) {
-                try {
-                    ResultSet resultSet = ConnectionSource.instance().createConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT * FROM DEPARTMENT");
-                    if (ID == null) {
-                        return null;
-                    }
-                    while (resultSet.next()) {
-                        if (ID.equals(resultSet.getString("ID"))) {
-                            return new Department(
-                                    new BigInteger(resultSet.getString("ID")),
-                                    resultSet.getString("NAME"),
-                                    resultSet.getString("LOCATION")
-                            );
-                        }
-                    }
-                    return null;
-                } catch (SQLException e){
-                    e.printStackTrace();
-                    return new Department(null, null, null);
-                }
-            }
-
-            private List<Employee> employeeList(Paging paging, String SQLString){
-                try {
-                    ResultSet resultSet = ConnectionSource.instance().createConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery(SQLString);
-                    List<Employee> result = new LinkedList<>();
-                    int item = (paging.page - 1) * paging.itemPerPage;
-                    resultSet.absolute(item);
-                    while (resultSet.next() && item < (paging.page) * paging.itemPerPage) {
-                        result.add(getEmployee(resultSet, false, true));
-                        item++;
-                    }
-                    return result;
-                } catch (SQLException exception){
-                    return null;
-                }
-            }
-
             @Override
             public List<Employee> getAllSortByHireDate(Paging paging) {
                 return employeeList(paging, "select * from EMPLOYEE order by HIREDATE");
@@ -145,12 +144,12 @@ public class ServiceFactory {
                 try {
                     ResultSet resultSet = ConnectionSource.instance().createConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT * FROM EMPLOYEE");
                     while (resultSet.next()) {
-                        if (resultSet.getString("ID").equals(String.valueOf(employee.getId()))){
+                        if (resultSet.getString("ID").equals(String.valueOf(employee.getId()))) {
                             return getEmployee(resultSet, true, true);
                         }
                     }
                     return null;
-                } catch (SQLException exception){
+                } catch (SQLException exception) {
                     return null;
                 }
             }
@@ -160,7 +159,7 @@ public class ServiceFactory {
                 try {
                     ResultSet resultSet = ConnectionSource.instance().createConnection().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE).executeQuery("SELECT * FROM EMPLOYEE WHERE DEPARTMENT = " + department.getId() + " ORDER BY SALARY DESC");
                     List<Employee> employees = new LinkedList<>();
-                    while (resultSet.next()){
+                    while (resultSet.next()) {
                         employees.add(getEmployee(resultSet, false, true));
                     }
                     return employees.get(salaryRank - 1);
